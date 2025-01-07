@@ -10,11 +10,11 @@ let snappy = false
  * @class Batcher
  */
 class Batcher {
-  loadSnappy () {
+  loadSnappy() {
     return require('snappy')
   }
 
-  loadUrl () {
+  loadUrl() {
     let URL
     try {
       if (typeof window !== 'undefined' && window.URL) {
@@ -34,7 +34,7 @@ class Batcher {
    * @param {*} options
    * @memberof Batcher
    */
-  constructor (options) {
+  constructor(options) {
     // Load given options to the object
     this.options = options
 
@@ -47,7 +47,7 @@ class Batcher {
     if (options.basicAuth) {
       const basicAuth = 'Basic ' + btoa(options.basicAuth)
       this.options.headers = Object.assign(this.options.headers, { Authorization: basicAuth })
-    } else if(this.url.username && this.url.password) {
+    } else if (this.url.username && this.url.password) {
       const basicAuth = 'Basic ' + btoa(this.url.username + ':' + this.url.password)
       this.options.headers = Object.assign(this.options.headers, { Authorization: basicAuth })
     }
@@ -82,7 +82,7 @@ class Batcher {
     }
 
     this.batchesSending = 0
-    this.onBatchesFlushed = () => {}
+    this.onBatchesFlushed = () => { }
 
     // If batching is enabled, run the loop
     this.options.batching && this.run()
@@ -99,7 +99,7 @@ class Batcher {
    *
    * Must be called right before batcher starts sending logs.
    */
-  batchSending () {
+  batchSending() {
     this.batchesSending++
   }
 
@@ -110,7 +110,7 @@ class Batcher {
    * is received and completely processed, right before
    * resolving/rejecting the promise.
    */
-  batchSent () {
+  batchSent() {
     if (--this.batchesSending) return
 
     this.onBatchesFlushed()
@@ -123,12 +123,12 @@ class Batcher {
    *
    * @returns {Promise}
    */
-  waitFlushed () {
+  waitFlushed() {
     return new Promise((resolve, reject) => {
       if (!this.batchesSending && !this.batch.streams.length) { return resolve() }
 
       this.onBatchesFlushed = () => {
-        this.onBatchesFlushed = () => {}
+        this.onBatchesFlushed = () => { }
         return resolve()
       }
     })
@@ -140,7 +140,7 @@ class Batcher {
    * @param {*} duration
    * @returns {Promise}
    */
-  wait (duration) {
+  wait(duration) {
     return new Promise(resolve => {
       setTimeout(resolve, duration)
     })
@@ -152,7 +152,7 @@ class Batcher {
    *
    * @param {*} logEntry
    */
-  async pushLogEntry (logEntry) {
+  async pushLogEntry(logEntry) {
     const noTimestamp =
       logEntry && logEntry.entries && logEntry.entries[0].ts === undefined
     // If user has decided to replace the given timestamps with a generated one, generate it
@@ -191,7 +191,7 @@ class Batcher {
   /**
    * Clears the batch.
    */
-  clearBatch () {
+  clearBatch() {
     this.batch.streams = []
   }
 
@@ -202,7 +202,7 @@ class Batcher {
    * @param {*} logEntry
    * @returns {Promise}
    */
-  sendBatchToLoki (logEntry) {
+  sendBatchToLoki(logEntry) {
     this.batchSending()
     return new Promise((resolve, reject) => {
       // If the batch is empty, do nothing
@@ -255,8 +255,12 @@ class Batcher {
 
         // Send the data to Grafana Loki
         req.post(this.url, this.contentType, this.options.headers, reqBody, this.options.timeout, this.options.httpAgent, this.options.httpsAgent)
-          .then(() => {
+          .then(({ data, response }) => {
             // No need to clear the batch if batching is disabled
+            if (response.statusCode < 200 || response.statusCode >= 300) {
+              throw new Error(data)
+            }
+
             logEntry === undefined && this.clearBatch()
             this.batchSent()
             resolve()
@@ -280,7 +284,7 @@ class Batcher {
    * Sends the batch to Loki and waits for
    * the amount of this.interval between requests.
    */
-  async run () {
+  async run() {
     this.runLoop = true
     while (this.runLoop) {
       try {
@@ -304,7 +308,7 @@ class Batcher {
    *
    * @param {() => void} [callback]
    */
-  close (callback) {
+  close(callback) {
     this.runLoop = false
     this.sendBatchToLoki()
       .then(() => { if (callback) { callback() } }) // maybe should emit something here

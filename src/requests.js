@@ -31,7 +31,10 @@ const post = async (lokiUrl, contentType, headers = {}, data = '', timeout, http
     const req = lib.request(options, res => {
       let resData = ''
       res.on('data', _data => (resData += _data))
-      res.on('end', () => resolve(resData))
+      res.on('end', () => resolve({
+        data: resData,
+        response: res
+      }))
     })
 
     // Error listener

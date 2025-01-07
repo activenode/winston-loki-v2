@@ -1,6 +1,6 @@
 {
   "name": "winston-loki-v2",
-  "version": "6.2.0",
+  "version": "6.2.1",
   "description": "A v2 Winston transport for Grafana Loki",
   "keywords": [
     "winston",
@@ -46,7 +46,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JaniAnttonen/winston-loki.git"
+    "url": "https://github.com/activenode/winston-loki-v2.git"
   },
   "dependencies": {
     "async-exit-hook": "2.0.1",

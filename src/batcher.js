@@ -257,8 +257,12 @@ class Batcher {
         req.post(this.url, this.contentType, this.options.headers, reqBody, this.options.timeout, this.options.httpAgent, this.options.httpsAgent)
           .then(({ data, response }) => {
             // No need to clear the batch if batching is disabled
-            if (response.statusCode < 200 || response.statusCode >= 300) {
-              throw new Error(data)
+            if (response.statusCode >= 300 || data.includes('{"code":"Error"')) {
+              const error = new Error(
+                `Failed to send logs to Loki: ${err.message || err}`
+              );
+              error.originalError = err;
+              throw error;
             }
 
             logEntry === undefined && this.clearBatch()
